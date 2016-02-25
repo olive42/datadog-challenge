@@ -75,7 +75,13 @@ class LogGenerator
     "/tags/datapower/" => 10,
     "/tags/open-source/" => 10,
     "/tags/ruby/" => 5,
-    "/tags/python/" => 10
+    "/tags/python/" => 10,
+    "/pages/abc/" => 10,
+    "/pages/def/" => 5,
+    "/docs/ghi/" => 5,
+    "/docs/jkl/" => 20,
+    "/docs/mno/" => 5,
+    "/docs/pqr/" => 5,
   }
 
   FILES = {

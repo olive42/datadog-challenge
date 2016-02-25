@@ -37,9 +37,9 @@ import (
 
 // LogRegexp is the main regexp used to parse a w3c access log file, to extract "sections".
 const (
-	LogRegexp           = "\"GET (/[^/]+/[^/]+)/"
-	HighThresholdAlert  = "[%s] Traffic over defined threshold: %.2f (%d) for the last 2 minutes"
-	UnderThresholdAlert = "[%s] Traffic went back under defined threshold: %.2f (%d)"
+	LogRegexp           = "\"GET (/[^/]+)/"
+	HighThresholdAlert  = "High traffic generated an alert - hits = %.2f, triggered at %s"
+	UnderThresholdAlert = "High traffic alert recovered, triggered at %s"
 )
 
 var Alerts []string
@@ -62,15 +62,15 @@ func processLine(rx *regexp.Regexp, line string) string {
 func displayInfo(gh int64, top [3]topN, avg float64) {
 	fmt.Printf("Total hits: %d, Avg hits over last 2m: %.2f\n", gh, avg)
 	for i, h := range top {
-		fmt.Printf("Top %d hit: %s, %d hits\n", i, h.section, h.hits)
+		fmt.Printf("Top %d hit: %s, %d hits\n", i+1, h.section, h.hits)
 	}
 	fmt.Printf("Alerts:\n")
 	fmt.Printf(strings.Join(Alerts, "\n"))
-	fmt.Printf("\n")
+	fmt.Printf("\n\n")
 }
 
 func averageSample(sample *ring.Ring) float64 {
-	sum := 0
+	var sum int
 	sample.Do(func(x interface{}) {
 		if x != nil {
 			sum += x.(int)
@@ -83,11 +83,11 @@ func checkHighTraffic(sample *ring.Ring, thresh int, alertStatus bool) bool {
 	trafAvg := averageSample(sample)
 	if int(trafAvg) > thresh && !alertStatus {
 		alertStatus = true
-		Alerts = append(Alerts, fmt.Sprintf(HighThresholdAlert, time.Now().Format(time.UnixDate), trafAvg, thresh))
+		Alerts = append(Alerts, fmt.Sprintf(HighThresholdAlert, trafAvg, time.Now().Format(time.UnixDate)))
 	}
 	if int(trafAvg) <= thresh && alertStatus {
 		alertStatus = false
-		Alerts = append(Alerts, fmt.Sprintf(UnderThresholdAlert, time.Now().Format(time.UnixDate), trafAvg, thresh))
+		Alerts = append(Alerts, fmt.Sprintf(UnderThresholdAlert, time.Now().Format(time.UnixDate)))
 	}
 	return alertStatus
 }
